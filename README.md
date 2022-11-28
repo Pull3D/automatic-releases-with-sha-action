@@ -2,22 +2,21 @@
 
 This action simplifies the GitHub release process by automatically uploading assets, generating changelogs, handling pre-releases, and so on.
 
+**Fork of [`marvinpinto/action-automatic-releases`](https://github.com/marvinpinto/action-automatic-releases)**
+
 ## Contents
 
 1. [Usage Examples](#usage-examples)
 1. [Supported Parameters](#supported-parameters)
 1. [Event Triggers](#event-triggers)
-1. [Versioning](#versioning)
-1. [How to get help](#how-to-get-help)
+1. [Stable Versions](#stable-versions)
 1. [License](#license)
-
-> **NOTE**: The `marvinpinto/action-automatic-releases` repository is an automatically generated mirror of the [marvinpinto/actions](https://github.com/marvinpinto/actions) monorepo containing this and other actions. Please file issues and pull requests over there.
 
 ## Usage Examples
 
-### Automatically generate a pre-release when changes land on master
+### Automatically generate a pre-release when changes land on main
 
-This example workflow will kick in as soon as changes land on `master`. After running the steps to build and test your project:
+This example workflow will kick in as soon as changes land on `main`. After running the steps to build and test your project:
 
 1. It will create (or replace) a git tag called `latest`.
 1. Generate a changelog from all the commits between this, and the previous `latest` tag.
@@ -35,7 +34,7 @@ name: "pre-release"
 on:
   push:
     branches:
-      - "master"
+      - "main"
 
 jobs:
   pre-release:
@@ -48,7 +47,7 @@ jobs:
         run: |
           echo "done!"
 
-      - uses: "marvinpinto/action-automatic-releases@latest"
+      - uses: "plu5/automatic-releases-with-sha-action@main"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "latest"
@@ -89,7 +88,7 @@ jobs:
         run: |
           echo "done!"
 
-      - uses: "marvinpinto/action-automatic-releases@latest"
+      - uses: "plu5/automatic-releases-with-sha-action@main"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
@@ -125,19 +124,15 @@ The following output values can be accessed via `${{ steps.<step-id>.outputs.<ou
 
 ## Event Triggers
 
-The GitHub Actions framework allows you to trigger this (and other) actions on _many combinations_ of events. For example, you could create specific pre-releases for release candidate tags (e.g `*-rc*`), generate releases as changes land on master (example above), nightly releases, and much more. Read through [Workflow syntax for GitHub Actions](https://help.github.com/en/articles/workflow-syntax-for-github-actions) for ideas and advanced examples.
+The GitHub Actions framework allows you to trigger this (and other) actions on _many combinations_ of events. For example, you could create specific pre-releases for release candidate tags (e.g `*-rc*`), generate releases as changes land on main (example above), nightly releases, and much more. Read through [Workflow syntax for GitHub Actions](https://help.github.com/en/articles/workflow-syntax-for-github-actions) for ideas and advanced examples.
 
-## Versioning
+## Stable Versions
 
-Every commit that lands on master for this project triggers an automatic build as well as a tagged release called `latest`. If you don't wish to live on the bleeding edge you may use a stable release instead. See [releases](../../releases/latest) for the available versions.
+If you don't wish to live on the bleeding edge you may use a stable release instead. See [releases](../../releases) for the available versions.
 
 ```yaml
-- uses: "marvinpinto/action-automatic-releases@<VERSION>"
+- uses: "plu5/automatic-releases-with-sha-action@<VERSION>"
 ```
-
-## How to get help
-
-The main [README](https://github.com/marvinpinto/actions/blob/master/README.md) for this project has a bunch of information related to debugging & submitting issues. If you're still stuck, try and get a hold of me on [keybase](https://keybase.io/marvinpinto) and I will do my best to help you out.
 
 ## License
 

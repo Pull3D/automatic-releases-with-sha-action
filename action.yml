@@ -1,6 +1,6 @@
-name: "Automatic Releases"
-author: "marvinpinto"
-description: "Automate the GitHub release process with assets, changelogs, pre-releases, and more"
+name: "Automatic Releases with SHA Hashes"
+author: "marvinpinto and plu5"
+description: "Automate the GitHub release process"
 inputs:
   repo_token:
     description: "GitHub secret token"
