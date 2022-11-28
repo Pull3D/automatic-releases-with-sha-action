@@ -1,0 +1,15 @@
+name: Test automatic release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: plu5/automatic-releases-with-sha-action@main
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          title: Release test
+          automatic_release_tag: latest
+          prerelease: false
