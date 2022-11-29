@@ -3,11 +3,14 @@ import * as github from '@actions/github';
 import {Context} from '@actions/github/lib/context';
 import * as Octokit from '@octokit/rest';
 import {sync as commitParser} from 'conventional-commits-parser';
-import {getChangelogOptions, dumpGitHubEventPayload} from './utils';
-import {isBreakingChange, generateChangelogFromParsedCommits, parseGitTag, ParsedCommits, octokitLogger} from './utils';
 import semverValid from 'semver/functions/valid';
 import semverRcompare from 'semver/functions/rcompare';
 import semverLt from 'semver/functions/lt';
+
+import {getChangelogOptions, dumpGitHubEventPayload} from './utils';
+import {isBreakingChange, generateChangelogFromParsedCommits, parseGitTag, ParsedCommits, octokitLogger} from './utils';
+import {getPaths} from './files';
+import {getChecksums} from './sha';
 import {uploadReleaseArtifacts} from './uploadReleaseArtifacts';
 
 type Args = {
@@ -285,6 +288,8 @@ export const main = async (): Promise<void> => {
     );
 
     const changelog = await getChangelog(client, context.repo.owner, context.repo.repo, commitsSinceRelease);
+    const artifactPaths = await getPaths(args.files);
+    const checksums = await getChecksums(artifactPaths);
 
     if (args.automaticReleaseTag) {
       await createReleaseTag(client, {
@@ -308,10 +313,10 @@ export const main = async (): Promise<void> => {
       name: args.releaseTitle ? args.releaseTitle : releaseTag,
       draft: args.draftRelease,
       prerelease: args.preRelease,
-      body: changelog,
+      body: changelog + '\n\n' + checksums,
     });
 
-    await uploadReleaseArtifacts(client, releaseUploadUrl, args.files);
+    await uploadReleaseArtifacts(client, releaseUploadUrl, artifactPaths);
 
     core.debug(`Exporting environment variable AUTOMATIC_RELEASES_TAG with value ${releaseTag}`);
     core.exportVariable('AUTOMATIC_RELEASES_TAG', releaseTag);
