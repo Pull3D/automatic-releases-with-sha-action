@@ -105,6 +105,7 @@ jobs:
 | `draft`                 | Mark this release as a draft?                              | `false`  |
 | `prerelease`            | Mark this release as a pre-release?                        | `true`   |
 | `automatic_release_tag` | Tag name to use for automatic releases, e.g `latest`.      | `null`   |
+| `tag_annotation`        | Optional tag annotation.                                   |  ""      |
 | `title`                 | Release title; defaults to the tag name if none specified. | Tag Name |
 | `files`                 | Files to upload as part of the release assets.             | `null`   |
 

@@ -19,6 +19,7 @@ type Args = {
   draftRelease: boolean;
   preRelease: boolean;
   releaseTitle: string;
+  tagAnnotation: string;
   files: string[];
 };
 
@@ -29,6 +30,7 @@ const getAndValidateArgs = (): Args => {
     draftRelease: JSON.parse(core.getInput('draft', {required: true})),
     preRelease: JSON.parse(core.getInput('prerelease', {required: true})),
     releaseTitle: core.getInput('title', {required: false}),
+    tagAnnotation: core.getInput('tag_annotation', {required: false}),
     files: [] as string[],
   };
 
@@ -40,10 +42,20 @@ const getAndValidateArgs = (): Args => {
   return args;
 };
 
-const createReleaseTag = async (client: github.GitHub, refInfo: Octokit.GitCreateRefParams) => {
+const createReleaseTag = async (client: github.GitHub, refInfo: Octokit.GitCreateRefParams, message: string) => {
   core.startGroup('Generating release tag');
   const friendlyTagName = refInfo.ref.substring(10); // 'refs/tags/latest' => 'latest'
   core.info(`Attempting to create or update release tag "${friendlyTagName}"`);
+
+  const tagResponse = await client.git.createTag({
+    owner: refInfo.owner,
+    repo: refInfo.repo,
+    tag: friendlyTagName,
+    message,
+    object: refInfo.sha,
+    type: 'commit',
+  });
+  refInfo.sha = tagResponse.data.sha;
 
   try {
     await client.git.createRef(refInfo);
@@ -297,7 +309,7 @@ export const main = async (): Promise<void> => {
         ref: `refs/tags/${args.automaticReleaseTag}`,
         repo: context.repo.repo,
         sha: context.sha,
-      });
+      }, args.tagAnnotation ? args.tagAnnotation : "");
 
       await deletePreviousGitHubRelease(client, {
         owner: context.repo.owner,
