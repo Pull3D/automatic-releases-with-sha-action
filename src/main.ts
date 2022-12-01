@@ -16,6 +16,7 @@ import {uploadReleaseArtifacts} from './uploadReleaseArtifacts';
 type Args = {
   repoToken: string;
   automaticReleaseTag: string;
+  isTagStatic: boolean;
   draftRelease: boolean;
   preRelease: boolean;
   releaseTitle: string;
@@ -27,6 +28,7 @@ const getAndValidateArgs = (): Args => {
   const args = {
     repoToken: core.getInput('repo_token', {required: true}),
     automaticReleaseTag: core.getInput('automatic_release_tag', {required: false}),
+    isTagStatic: JSON.parse(core.getInput('is_tag_static', {required: false})),
     draftRelease: JSON.parse(core.getInput('draft', {required: true})),
     preRelease: JSON.parse(core.getInput('prerelease', {required: true})),
     releaseTitle: core.getInput('title', {required: false}),
@@ -105,6 +107,7 @@ const generateNewGitHubRelease = async (
   return resp.data.upload_url;
 };
 
+// Only called if "is_tag_static" is false
 const searchForPreviousReleaseTag = async (
   client: github.GitHub,
   currentReleaseTag: string,
@@ -113,7 +116,7 @@ const searchForPreviousReleaseTag = async (
   const validSemver = semverValid(currentReleaseTag);
   if (!validSemver) {
     throw new Error(
-      `The parameter "automatic_release_tag" was not set and the current tag "${currentReleaseTag}" does not appear to conform to semantic versioning.`,
+      `Cannot find previous release tag because the tag does not appear to conform to semantic versioning.`,
     );
   }
 
@@ -281,7 +284,7 @@ export const main = async (): Promise<void> => {
       );
     }
 
-    const previousReleaseTag = args.automaticReleaseTag
+    const previousReleaseTag = args.isTagStatic
       ? args.automaticReleaseTag
       : await searchForPreviousReleaseTag(client, releaseTag, {
           owner: context.repo.owner,

@@ -104,7 +104,8 @@ jobs:
 | `repo_token`\*\*        | GitHub Action token, e.g. `"${{ secrets.GITHUB_TOKEN }}"`. | `null`   |
 | `draft`                 | Mark this release as a draft?                              | `false`  |
 | `prerelease`            | Mark this release as a pre-release?                        | `true`   |
-| `automatic_release_tag` | Tag name to use for automatic releases, e.g `latest`.      | `null`   |
+| `automatic_release_tag` | Tag name to use for automatic releases                     | `null`   |
+| `is_tag_static`         | Generate changelog from the same tag instead of previous, in case you use the same tag name every time (e.g. 'latest') | `false` |
 | `tag_annotation`        | Optional tag annotation.                                   |  ""      |
 | `title`                 | Release title; defaults to the tag name if none specified. | Tag Name |
 | `files`                 | Files to upload as part of the release assets.             | `null`   |

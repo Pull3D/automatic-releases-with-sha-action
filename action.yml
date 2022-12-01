@@ -8,6 +8,10 @@ inputs:
   automatic_release_tag:
     description: "Git tag (for automatic releases)"
     required: false
+  is_tag_static:
+    description: "Generate changelog from the same tag instead of previous"
+    required: false
+    default: false
   tag_annotation:
     description: "Optional tag annotation"
     required: false
