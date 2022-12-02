@@ -7,7 +7,7 @@ export const getChecksums = async (
   paths: string[],
 ): Promise<string> => {
   let markdown = '';
-  if (paths.length < 0) return markdown;
+  if (paths.length < 1) return markdown;
 
   core.startGroup('Generating checksums for artifacts');
 
