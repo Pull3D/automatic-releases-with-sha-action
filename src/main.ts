@@ -8,7 +8,8 @@ import semverRcompare from 'semver/functions/rcompare';
 import semverLt from 'semver/functions/lt';
 
 import {getChangelogOptions, dumpGitHubEventPayload} from './utils';
-import {isBreakingChange, generateChangelogFromParsedCommits, parseGitTag, ParsedCommits, octokitLogger} from './utils';
+import {isBreakingChange, generateChangelogFromParsedCommits, parseGitTag,
+        ParsedCommits, appendFullChangelogLink, octokitLogger} from './utils';
 import {getPaths} from './files';
 import {getChecksums} from './sha';
 import {uploadReleaseArtifacts} from './uploadReleaseArtifacts';
@@ -284,46 +285,47 @@ export const main = async (): Promise<void> => {
       );
     }
 
+    const repoInfo = {owner: context.repo.owner, repo: context.repo.repo};
+    const repoInfoArr: [string, string] = [repoInfo.owner, repoInfo.repo];
+
     const previousReleaseTag = args.isTagStatic
       ? args.automaticReleaseTag
-      : await searchForPreviousReleaseTag(client, releaseTag, {
-          owner: context.repo.owner,
-          repo: context.repo.repo,
-        });
+      : await searchForPreviousReleaseTag(client, releaseTag, repoInfo);
     core.endGroup();
 
     const commitsSinceRelease = await getCommitsSinceRelease(
       client,
       {
-        owner: context.repo.owner,
-        repo: context.repo.repo,
+        ...repoInfo,
         ref: `tags/${previousReleaseTag}`,
       },
       context.sha,
     );
 
-    const changelog = await getChangelog(client, context.repo.owner, context.repo.repo, commitsSinceRelease);
+    let changelog = appendFullChangelogLink(
+      await getChangelog(client, ...repoInfoArr, commitsSinceRelease),
+      ...repoInfoArr,
+      previousReleaseTag,
+      releaseTag
+    );
     const artifactPaths = await getPaths(args.files);
     const checksums = await getChecksums(artifactPaths);
 
     if (args.automaticReleaseTag) {
       await createReleaseTag(client, {
-        owner: context.repo.owner,
+        ...repoInfo,
         ref: `refs/tags/${args.automaticReleaseTag}`,
-        repo: context.repo.repo,
         sha: context.sha,
       }, args.tagAnnotation ? args.tagAnnotation : "");
 
       await deletePreviousGitHubRelease(client, {
-        owner: context.repo.owner,
-        repo: context.repo.repo,
+        ...repoInfo,
         tag: args.automaticReleaseTag,
       });
     }
 
     const releaseUploadUrl = await generateNewGitHubRelease(client, {
-      owner: context.repo.owner,
-      repo: context.repo.repo,
+      ...repoInfo,
       tag_name: releaseTag,
       name: args.releaseTitle ? args.releaseTitle : releaseTag,
       draft: args.draftRelease,

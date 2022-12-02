@@ -80,7 +80,7 @@ const getFormattedChangelogEntry = (parsedCommit: ParsedCommits): string => {
 
   const url = parsedCommit.extra.commit.html_url;
   const sha = getShortSHA(parsedCommit.extra.commit.sha);
-  const author = parsedCommit.extra.commit.commit.author.name;
+  const author = parsedCommit.extra.commit.author.login;
 
   let prString = '';
   prString = parsedCommit.extra.pullRequests.reduce((acc, pr) => {
@@ -96,17 +96,17 @@ const getFormattedChangelogEntry = (parsedCommit: ParsedCommits): string => {
     prString = ' ' + prString;
   }
 
-  entry = `- ${sha}: ${parsedCommit.header} (${author})${prString}`;
+  entry = `- ${parsedCommit.header}${prString} — @${author} in ${sha}`;
   if (parsedCommit.type) {
     const scopeStr = parsedCommit.scope ? `**${parsedCommit.scope}**: ` : '';
-    entry = `- ${scopeStr}${parsedCommit.subject}${prString} ([${author}](${url}))`;
+    entry = `- ${scopeStr}${parsedCommit.subject}${prString} — @${author} in ${sha}`;
   }
 
   return entry;
 };
 
 export const generateChangelogFromParsedCommits = (parsedCommits: ParsedCommits[]): string => {
-  let changelog = '';
+  let changelog = '## What’s Changed\n';
 
   // Breaking Changes
   const breaking = parsedCommits
@@ -114,7 +114,7 @@ export const generateChangelogFromParsedCommits = (parsedCommits: ParsedCommits[
     .map((val) => getFormattedChangelogEntry(val))
     .reduce((acc, line) => `${acc}\n${line}`, '');
   if (breaking) {
-    changelog += '## Breaking Changes\n';
+    changelog += '### Breaking Changes\n';
     changelog += breaking.trim();
   }
 
@@ -124,7 +124,7 @@ export const generateChangelogFromParsedCommits = (parsedCommits: ParsedCommits[
       .map((val) => getFormattedChangelogEntry(val))
       .reduce((acc, line) => `${acc}\n${line}`, '');
     if (clBlock) {
-      changelog += `\n\n## ${ConventionalCommitTypes[key]}\n`;
+      changelog += `\n\n### ${ConventionalCommitTypes[key]}\n`;
       changelog += clBlock.trim();
     }
   }
@@ -135,7 +135,7 @@ export const generateChangelogFromParsedCommits = (parsedCommits: ParsedCommits[
     .map((val) => getFormattedChangelogEntry(val))
     .reduce((acc, line) => `${acc}\n${line}`, '');
   if (commits) {
-    changelog += '\n\n## Commits\n';
+    changelog += '\n\n### Miscellaneous\n';
     changelog += commits.trim();
   }
 
@@ -165,6 +165,11 @@ export const getChangelogOptions = async () => {
   core.debug(`Changelog options: ${JSON.stringify(defaultOpts)}`);
   return defaultOpts;
 };
+
+export const appendFullChangelogLink = (changelog, owner, repo, prevTag, newTag) => {
+  return changelog += `\n\n**Full Changelog**:\
+ https://github.com/${owner}/${repo}/compare/${prevTag}...${newTag}\n`;
+}
 
 // istanbul ignore next
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
