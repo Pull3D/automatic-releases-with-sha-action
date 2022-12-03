@@ -1,4 +1,5 @@
 # GitHub Automatic Releases
+[![GitHub latest release](https://img.shields.io/github/v/release/plu5/automatic-releases-with-sha-action?color=success&label=stable)](../../releases/latest)
 
 This action simplifies the GitHub release process by automatically uploading assets, generating changelogs, handling pre-releases, and so on.
 
