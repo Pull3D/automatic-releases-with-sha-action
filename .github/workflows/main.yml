@@ -1,22 +1,53 @@
-name: Test automatic release
+name: Release new version
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        type: string
+        required: true
+      annotation:
+        type: string
+        required: false
+  push:
+    paths: ['package.json'] # VERSION_FILE
+
+env:
+  VERSION_FILE: 'package.json'
 
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - run: |
-          mkdir mockartifacts && cd mockartifacts
-          echo "test" > mockartifact-1.0.0-windows
-          echo "test" > mockartifact-1.0.0-linux
-          echo "test" > mockartifact-1.0.0-macos
-          
-      - uses: plu5/automatic-releases-with-sha-action@main
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 2 # for the diff
+
+      - if: inputs.version == ''
+        name: Check whether version changed
+        run: |
+          DIFF=$(git diff -U0 HEAD^ HEAD $VERSION_FILE | grep '"version"')
+          [ -n "$DIFF" ] && VERSION_CHANGED=true || VERSION_CHANGED=false
+          echo "VERSION_CHANGED=$VERSION_CHANGED" >> $GITHUB_ENV
+
+      - if: inputs.version != '' || env.VERSION_CHANGED == 'true'
+        name: Get version and annotation
+        run: |
+          VERSION="${{ inputs.version }}"; ANNOTATION="${{ inputs.annotation }}"
+          if [ -n $VERSION ]; then
+            echo "ANNOTATION=$ANNOTATION" >> $GITHUB_ENV
+          else
+            VERSION=`echo $(jq -r '.version' $VERSION_FILE)`
+            echo "${{ github.event.head_commit.message }}" > commit_msg
+            ANNOTATION=$(tail -n +3 commit_msg)
+            echo -e "ANNOTATION<<EOF\n$ANNOTATION\nEOF" >> $GITHUB_ENV
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - if: env.VERSION != ''
+        uses: plu5/automatic-releases-with-sha-action@main
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          title: Release test
-          automatic_release_tag: latest
+          automatic_release_tag: v${{ env.VERSION }}
+          tag_annotation: ${{ env.ANNOTATION }}
           prerelease: false
-          files: ./mockartifacts/*
